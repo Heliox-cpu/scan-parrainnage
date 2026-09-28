@@ -46,47 +46,25 @@ Application de matching parrain/marraine — bizut pour la filière SCAN de l'IN
 
 ---
 
-## PARTIE 2 — DÉPLOIEMENT NETLIFY
+## PARTIE 2 — DÉPLOIEMENT VERCEL
 
-### 2.1 Push sur GitHub
-```bash
-git init
-git add .
-git commit -m "init"
-git branch -M main
-git remote add origin https://github.com/TON_USER/scan-parrainage.git
-git push -u origin main
-```
+### 2.1 Connecter Vercel
+1. Va sur [vercel.com](https://vercel.com) → Sign up / Log in avec ton compte GitHub
+2. Clique **"Add New..." → "Project"**
+3. Importe le repo **`scan-parrainnage`**
 
-### 2.2 Connecter Netlify
-1. Va sur [netlify.com](https://netlify.com) → Sign up
-2. Clique **"Add new site" → "Import an existing project"**
-3. Sélectionne **GitHub** → choisis ton repo
-
-### 2.3 Configurer le build
-Netlify détecte automatiquement Next.js grâce au `package.json` à la racine.
-
-Vérifie dans **Site settings → Build & deploy → Build settings** :
-- **Build command** : `npm run build`
-- **Publish directory** : `.next`
-
-### 2.4 Ajouter les variables d'environnement
-1. Va dans **Site settings → Environment variables**
-2. Clique **"Add a variable"**
-3. Ajoute ces 2 variables :
+### 2.2 Configurer les variables d'environnement
+Dans la section **Environment Variables**, ajoute ces 2 variables :
 
 | Key | Value |
 |-----|-------|
 | `NEXT_PUBLIC_SUPABASE_URL` | `https://xupmycfricsqoltehzmw.supabase.co` |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `sb_publishable_UEeXg4MsWaiVBuqLyWzlCA_EVxezjGO` |
 
-4. Clique **Save**
-
-### 2.5 Déployer
-1. Va dans **Deploys**
-2. Clique **"Trigger deploy" → "Clear cache and deploy site"**
-3. Attends le build (~2 min)
-4. Ton site est live ! 🎉
+### 2.3 Déployer
+1. Clique sur **"Deploy"**
+2. Vercel détecte automatiquement Next.js 14 et compile en ~30 secondes.
+3. Ton site est live ! 🎉
 
 ---
 
