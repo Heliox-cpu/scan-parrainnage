@@ -5,6 +5,10 @@ import {
   DndContext,
   DragOverlay,
   useDroppable,
+  useSensor,
+  useSensors,
+  MouseSensor,
+  TouchSensor,
   DragStartEvent,
   DragEndEvent,
   defaultDropAnimationSideEffects,
@@ -65,6 +69,20 @@ function RankZone({ position, label, bizut, onViewPdf, onRemove }: {
 export default function RankingBoard({ bizuts, myClassements, onUpdateRank, onViewPdf }: Props) {
   const [activeBizut, setActiveBizut] = useState<Bizut | null>(null)
 
+  const sensors = useSensors(
+    useSensor(MouseSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200,
+        tolerance: 6,
+      },
+    })
+  )
+
   const getBizutById = useCallback((id: string) => bizuts.find((b) => b.id === id) || null, [bizuts])
 
   const ranks: Record<number, Bizut | null> = {
@@ -106,7 +124,7 @@ export default function RankingBoard({ bizuts, myClassements, onUpdateRank, onVi
   }
 
   return (
-    <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Pool */}
         <div>

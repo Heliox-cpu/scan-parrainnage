@@ -43,8 +43,13 @@ export default function BizutCard({ bizut, onViewPdf, isInRank = false }: Props)
       </div>
       <button
         type="button"
-        onClick={(e) => { e.stopPropagation(); onViewPdf(bizut); }}
-        className="shrink-0 text-xs font-medium text-accent-foreground bg-accent hover:bg-accent/80 px-2 py-1 rounded-md transition-colors"
+        onPointerDown={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation()
+          onViewPdf(bizut)
+        }}
+        className="shrink-0 text-xs font-semibold text-accent-foreground bg-accent hover:bg-accent/80 px-2.5 py-1.5 rounded-md transition-colors shadow-sm"
       >
         PDF
       </button>
