@@ -25,22 +25,24 @@ export default function AdminPage() {
 
   useEffect(() => {
     async function init() {
-      const authUser = await getCurrentUser()
-      if (!authUser) { router.push('/'); return }
-      const prenom = authUser.user_metadata?.prenom || ''
-      const nom = authUser.user_metadata?.nom || ''
-      const parrain = await getOrCreateParrain(authUser.id, authUser.email!, prenom, nom)
+      const parrain = await getCurrentUser()
+      if (!parrain) { router.push('/'); return }
       if (!parrain.is_admin) { router.push('/ranking/'); return }
       setUser(parrain)
 
-      const [b, p, c, s] = await Promise.all([
-        getBizuts(), getParrains(), getClassements(), getBizutStats(),
-      ])
-      setBizuts(b)
-      setParrains(p)
-      setClassements(c)
-      setStats(s)
-      setLoading(false)
+      try {
+        const [b, p, c, s] = await Promise.all([
+          getBizuts(), getParrains(), getClassements(), getBizutStats(),
+        ])
+        setBizuts(b)
+        setParrains(p)
+        setClassements(c)
+        setStats(s)
+      } catch (err) {
+        console.error('Erreur chargement admin:', err)
+      } finally {
+        setLoading(false)
+      }
     }
     init()
   }, [router])

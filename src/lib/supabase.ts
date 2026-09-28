@@ -13,24 +13,21 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 
 // ─── Auth ─────────────────────────────────────────────
 
-export async function signInWithMagicLink(email: string, prenom: string, nom: string) {
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
-    options: {
-      data: { prenom, nom },
-      emailRedirectTo: typeof window !== 'undefined' ? window.location.origin + '/ranking/' : undefined,
-    },
-  })
-  return { error }
-}
-
 export async function signOut() {
-  await supabase.auth.signOut()
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('scan_parrain')
+  }
 }
 
-export async function getCurrentUser() {
-  const { data: { user } } = await supabase.auth.getUser()
-  return user
+export async function getCurrentUser(): Promise<Parrain | null> {
+  if (typeof window === 'undefined') return null
+  const stored = localStorage.getItem('scan_parrain')
+  if (!stored) return null
+  try {
+    return JSON.parse(stored) as Parrain
+  } catch {
+    return null
+  }
 }
 
 // ─── Bizuts ───────────────────────────────────────────
@@ -54,19 +51,40 @@ export async function uploadQuestionnaire(file: File, bizutId: string) {
 
 // ─── Parrains ─────────────────────────────────────────
 
-export async function getOrCreateParrain(userId: string, email: string, prenom: string, nom: string): Promise<Parrain> {
-  const { data: existing } = await supabase.from('parrains').select('*').eq('id', userId).single()
-  if (existing) return existing as Parrain
+export async function getOrCreateParrain(email: string, prenom: string, nom: string): Promise<Parrain> {
+  const cleanEmail = email.trim().toLowerCase()
+  const { data: existing } = await supabase
+    .from('parrains')
+    .select('*')
+    .eq('email', cleanEmail)
+    .maybeSingle()
+  
+  if (existing) {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('scan_parrain', JSON.stringify(existing))
+    }
+    return existing as Parrain
+  }
 
   const { data, error } = await supabase.from('parrains').insert({
-    id: userId,
-    email,
-    prenom,
-    nom,
+    email: cleanEmail,
+    prenom: prenom.trim(),
+    nom: nom.trim(),
     is_admin: false,
   }).select().single()
+
   if (error) throw error
+
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('scan_parrain', JSON.stringify(data))
+  }
   return data as Parrain
+}
+
+export async function selectExistingParrain(parrain: Parrain): Promise<void> {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('scan_parrain', JSON.stringify(parrain))
+  }
 }
 
 export async function getParrains(): Promise<Parrain[]> {

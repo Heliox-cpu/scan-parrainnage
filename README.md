@@ -10,8 +10,8 @@ Application de matching parrain/marraine — bizut pour la filière SCAN de l'IN
 - **Netlify** (hébergement gratuit)
 
 ## Fonctionnalités
-- Auth par magic link (pas de mot de passe)
-- Upload de questionnaires PDF
+- Connexion directe sans mot de passe ni rate limit (choix de profil ou saisie nom/prénom/email)
+- Upload et consultation de questionnaires PDF
 - Drag & drop pour classer son top 3 bizuts
 - Stats temps réel : nombre de votes par position pour chaque bizut
 - Panel admin avec récapitulatif et algorithme de matching
@@ -109,9 +109,9 @@ UPDATE parrains SET is_admin = true WHERE email = 'ton.email@insa-lyon.fr';
 
 ### 3.3 Les 2A se connectent
 1. Ils vont sur le site
-2. Rentrent nom/prénom/email INSA
-3. Reçoivent un lien magique par mail
-4. Clasquent leur top 3 en drag & drop
+2. Rentrent nom/prénom/email INSA (ou sélectionnent leur nom s'ils sont déjà enregistrés)
+3. Accèdent immédiatement à l'interface sans restriction de rate-limit
+4. Classent leur top 3 en drag & drop
 5. Les stats se mettent à jour en temps réel
 
 ---

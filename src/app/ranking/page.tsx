@@ -31,25 +31,27 @@ export default function RankingPage() {
 
   useEffect(() => {
     async function init() {
-      const authUser = await getCurrentUser()
-      if (!authUser) {
+      const parrain = await getCurrentUser()
+      if (!parrain) {
         router.push('/')
         return
       }
-      const prenom = authUser.user_metadata?.prenom || ''
-      const nom = authUser.user_metadata?.nom || ''
-      const parrain = await getOrCreateParrain(authUser.id, authUser.email!, prenom, nom)
       setUser(parrain)
 
-      const [b, mc, st] = await Promise.all([
-        getBizuts(),
-        getMyClassements(parrain.id),
-        getBizutStats(),
-      ])
-      setBizuts(b)
-      setMyClassements(mc)
-      setStats(st)
-      setLoading(false)
+      try {
+        const [b, mc, st] = await Promise.all([
+          getBizuts(),
+          getMyClassements(parrain.id),
+          getBizutStats(),
+        ])
+        setBizuts(b)
+        setMyClassements(mc)
+        setStats(st)
+      } catch (err) {
+        console.error('Erreur chargement données:', err)
+      } finally {
+        setLoading(false)
+      }
     }
     init()
   }, [router])

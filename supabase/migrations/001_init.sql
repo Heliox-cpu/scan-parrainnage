@@ -53,8 +53,10 @@ ALTER TABLE matchings ENABLE ROW LEVEL SECURITY;
 -- Bizuts : tout le monde peut lire
 CREATE POLICY "bizuts_select_all" ON bizuts FOR SELECT USING (true);
 
--- Parrains : tout le monde peut lire (pour les stats)
+-- Parrains : tout le monde peut lire (pour les stats) et s'inscrire
 CREATE POLICY "parrains_select_all" ON parrains FOR SELECT USING (true);
+CREATE POLICY "parrains_insert_all" ON parrains FOR INSERT WITH CHECK (true);
+CREATE POLICY "parrains_update_all" ON parrains FOR UPDATE USING (true);
 
 -- Classements : tout le monde peut lire (stats publiques)
 CREATE POLICY "classements_select_all" ON classements FOR SELECT USING (true);
