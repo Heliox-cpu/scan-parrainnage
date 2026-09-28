@@ -27,11 +27,11 @@ Application de matching parrain/marraine — bizut pour la filière SCAN de l'IN
 3. Donne un nom (ex: `scan-parrainage`) → Create
 4. Attends que le projet soit prêt (~2 min)
 
-### 1.2 Créer les tables (SQL)
+### 1.2 Créer les tables et sécuriser (SQL)
 1. Va dans **SQL Editor** (menu de gauche)
 2. Clique **"New query"**
-3. Copie-colle le contenu du fichier `supabase/migrations/001_init.sql`
-4. Clique **"Run"**
+3. Copie-colle le contenu du fichier `supabase/migrations/001_init.sql` puis clique **"Run"**
+4. Crée une nouvelle requête, colle le contenu du fichier `supabase/migrations/002_security.sql` puis clique **"Run"**
 
 ### 1.3 Activer Realtime (sync temps réel)
 1. Va dans **Database → Publications** (menu de gauche)
@@ -54,12 +54,13 @@ Application de matching parrain/marraine — bizut pour la filière SCAN de l'IN
 3. Importe le repo **`scan-parrainnage`**
 
 ### 2.2 Configurer les variables d'environnement
-Dans la section **Environment Variables**, ajoute ces 2 variables :
+Dans la section **Environment Variables**, ajoute ces variables :
 
-| Key | Value |
-|-----|-------|
-| `NEXT_PUBLIC_SUPABASE_URL` | `https://xupmycfricsqoltehzmw.supabase.co` |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `sb_publishable_UEeXg4MsWaiVBuqLyWzlCA_EVxezjGO` |
+| Key | Value | Description |
+|-----|-------|-------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://xupmycfricsqoltehzmw.supabase.co` | URL de ton projet Supabase |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `sb_publishable_UEeXg4MsWaiVBuqLyWzlCA_EVxezjGO` | Clé publique anon Supabase |
+| `NEXT_PUBLIC_ADMIN_KEY` | `scan2026insa` *(ou la clé secrète de ton choix)* | Mot de passe maître du panel /admin/ |
 
 ### 2.3 Déployer
 1. Clique sur **"Deploy"**

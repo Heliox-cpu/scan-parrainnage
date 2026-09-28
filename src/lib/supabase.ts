@@ -49,51 +49,69 @@ export async function uploadQuestionnaire(file: File, bizutId: string) {
   return publicUrl
 }
 
-// ─── Parrains ─────────────────────────────────────────
+// ─── Helpers Sécurité (Hash SHA-256) ───────────────────
 
-export async function getOrCreateParrain(email: string, prenom: string, nom: string): Promise<Parrain> {
-  const cleanEmail = email.trim().toLowerCase()
-  const { data: existing } = await supabase
-    .from('parrains')
-    .select('*')
-    .eq('email', cleanEmail)
-    .maybeSingle()
-  
-  if (existing) {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('scan_parrain', JSON.stringify(existing))
-    }
-    return existing as Parrain
-  }
-
-  const { data, error } = await supabase.from('parrains').insert({
-    email: cleanEmail,
-    prenom: prenom.trim(),
-    nom: nom.trim(),
-    is_admin: false,
-  }).select().single()
-
-  if (error) throw error
-
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('scan_parrain', JSON.stringify(data))
-  }
-  return data as Parrain
+export async function hashPin(pin: string): Promise<string> {
+  const encoder = new TextEncoder()
+  const data = encoder.encode(pin.trim())
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
 }
 
-export async function selectExistingParrain(parrain: Parrain): Promise<void> {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('scan_parrain', JSON.stringify(parrain))
+export function isValidInsaEmail(email: string): boolean {
+  const re = /^[A-Za-z0-9._%+-]+@insa-lyon\.fr$/
+  return re.test(email.trim().toLowerCase())
+}
+
+// ─── Parrains Sécurisés ───────────────────────────────
+
+export async function loginOrRegisterParrain(
+  email: string,
+  prenom: string,
+  nom: string,
+  pin: string
+): Promise<Parrain> {
+  const cleanEmail = email.trim().toLowerCase()
+  if (!isValidInsaEmail(cleanEmail)) {
+    throw new Error('Adresse email invalide. Utilise ton adresse @insa-lyon.fr')
   }
+  if (!pin || pin.trim().length < 4) {
+    throw new Error('Le code PIN doit comporter au moins 4 caractères.')
+  }
+
+  const pinHash = await hashPin(pin)
+
+  const { data, error } = await supabase.rpc('login_or_register_parrain', {
+    p_email: cleanEmail,
+    p_prenom: prenom.trim(),
+    p_nom: nom.trim(),
+    p_pin_hash: pinHash,
+  })
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  const user = data && data[0] ? (data[0] as Parrain) : null
+  if (!user) {
+    throw new Error('Erreur de connexion. Vérifie tes identifiants.')
+  }
+
+  user.token = pinHash
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('scan_parrain', JSON.stringify(user))
+  }
+  return user
 }
 
 export async function getParrains(): Promise<Parrain[]> {
-  const { data, error } = await supabase.from('parrains').select('*').order('nom')
+  const { data, error } = await supabase.from('parrains').select('id, prenom, nom, email, is_admin, created_at').order('nom')
   if (error) throw error
   return data || []
 }
 
-// ─── Classements ──────────────────────────────────────
+// ─── Classements Sécurisés ────────────────────────────
 
 export async function getClassements(): Promise<Classement[]> {
   const { data, error } = await supabase.from('classements').select('*')
@@ -101,17 +119,22 @@ export async function getClassements(): Promise<Classement[]> {
   return data || []
 }
 
-export async function upsertClassement(parrainId: string, bizutId: string, position: number) {
-  const { error } = await supabase.rpc('upsert_classement', {
+export async function upsertClassement(parrainId: string, pinHash: string, bizutId: string, position: number) {
+  const { error } = await supabase.rpc('secure_upsert_classement', {
     p_parrain_id: parrainId,
+    p_pin_hash: pinHash,
     p_bizut_id: bizutId,
     p_position: position,
   })
   if (error) throw error
 }
 
-export async function deleteClassement(parrainId: string, position: number) {
-  const { error } = await supabase.from('classements').delete().eq('parrain_id', parrainId).eq('position', position)
+export async function deleteClassement(parrainId: string, pinHash: string, position: number) {
+  const { error } = await supabase.rpc('secure_delete_classement', {
+    p_parrain_id: parrainId,
+    p_pin_hash: pinHash,
+    p_position: position,
+  })
   if (error) throw error
 }
 

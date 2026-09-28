@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import {
   getCurrentUser,
   getBizuts,
-  getOrCreateParrain,
   getMyClassements,
   getBizutStats,
   upsertClassement,
@@ -70,13 +69,13 @@ export default function RankingPage() {
   }, [user])
 
   const handleUpdateRank = useCallback(async (bizutId: string | null, position: number | null) => {
-    if (!user || position === null) return
+    if (!user || position === null || !user.token) return
     setSaving(true)
     try {
       if (bizutId === null) {
-        await deleteClassement(user.id, position)
+        await deleteClassement(user.id, user.token, position)
       } else {
-        await upsertClassement(user.id, bizutId, position)
+        await upsertClassement(user.id, user.token, bizutId, position)
       }
       const [mc, st] = await Promise.all([
         getMyClassements(user.id),
@@ -84,9 +83,9 @@ export default function RankingPage() {
       ])
       setMyClassements(mc)
       setStats(st)
-    } catch (e) {
+    } catch (e: any) {
       console.error(e)
-      alert('Erreur lors de la sauvegarde')
+      alert(e?.message || 'Erreur lors de la sauvegarde du classement')
     } finally {
       setSaving(false)
     }

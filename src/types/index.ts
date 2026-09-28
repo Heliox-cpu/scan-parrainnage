@@ -13,6 +13,7 @@ export interface Parrain {
   nom: string;
   email: string;
   is_admin: boolean;
+  token?: string;
   created_at: string;
 }
 

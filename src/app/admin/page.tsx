@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   getCurrentUser,
-  getOrCreateParrain,
   getBizuts,
   getParrains,
   getClassements,
@@ -20,15 +19,23 @@ export default function AdminPage() {
   const [parrains, setParrains] = useState<Parrain[]>([])
   const [classements, setClassements] = useState<Classement[]>([])
   const [stats, setStats] = useState<BizutStats[]>([])
-  const [loading, setLoading] = useState(true)
   const [matchings, setMatchings] = useState<{parrain: Parrain; bizut: Bizut; score: number}[]>([])
+  const [loading, setLoading] = useState(true)
+  const [adminPassphrase, setAdminPassphrase] = useState('')
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false)
+  const [adminError, setAdminError] = useState('')
 
   useEffect(() => {
     async function init() {
       const parrain = await getCurrentUser()
       if (!parrain) { router.push('/'); return }
-      if (!parrain.is_admin) { router.push('/ranking/'); return }
       setUser(parrain)
+
+      // Si déjà marqué admin dans la session et débloqué
+      const storedAdminAuth = typeof window !== 'undefined' ? sessionStorage.getItem('scan_admin_auth') : null
+      if (parrain.is_admin && storedAdminAuth === 'true') {
+        setIsAdminAuthenticated(true)
+      }
 
       try {
         const [b, p, c, s] = await Promise.all([
@@ -46,6 +53,21 @@ export default function AdminPage() {
     }
     init()
   }, [router])
+
+  function handleUnlockAdmin(e: React.FormEvent) {
+    e.preventDefault()
+    setAdminError('')
+    // Clé admin par défaut sécurisée ou personnalisable
+    const expectedKey = process.env.NEXT_PUBLIC_ADMIN_KEY || 'scan2026insa'
+    if (adminPassphrase.trim() === expectedKey) {
+      setIsAdminAuthenticated(true)
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('scan_admin_auth', 'true')
+      }
+    } else {
+      setAdminError('Mot de passe administrateur incorrect.')
+    }
+  }
 
   useEffect(() => {
     const channel = supabase
@@ -143,6 +165,56 @@ export default function AdminPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-muted-foreground animate-pulse">Chargement...</div>
+      </div>
+    )
+  }
+
+  if (!isAdminAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="w-full max-w-sm space-y-5 rounded-xl border bg-card p-6 shadow-sm">
+          <div className="text-center space-y-1">
+            <span className="text-2xl">🔐</span>
+            <h1 className="text-lg font-bold">Accès Administrateur</h1>
+            <p className="text-xs text-muted-foreground">
+              Entrez la clé secrète administrateur pour accéder aux données et lancer le matching.
+            </p>
+          </div>
+
+          {adminError && (
+            <div className="rounded-md bg-destructive/15 p-2.5 text-xs text-destructive font-medium text-center">
+              {adminError}
+            </div>
+          )}
+
+          <form onSubmit={handleUnlockAdmin} className="space-y-3">
+            <div>
+              <label className="block text-xs font-medium mb-1">Clé secrète Admin</label>
+              <input
+                type="password"
+                required
+                value={adminPassphrase}
+                onChange={(e) => setAdminPassphrase(e.target.value)}
+                placeholder="••••••••"
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                autoFocus
+              />
+            </div>
+            <button
+              type="submit"
+              className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              Déverrouiller le panel
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push('/ranking/')}
+              className="w-full text-center text-xs text-muted-foreground hover:text-foreground pt-1"
+            >
+              Retour à l'espace de vote
+            </button>
+          </form>
+        </div>
       </div>
     )
   }
