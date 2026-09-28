@@ -39,7 +39,7 @@ export default function RankingPage() {
 
       try {
         const [b, mc, st] = await Promise.all([
-          getBizuts(),
+          getBizuts(parrain.id, parrain.token),
           getMyClassements(parrain.id),
           getBizutStats(),
         ])

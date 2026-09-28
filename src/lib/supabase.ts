@@ -32,7 +32,14 @@ export async function getCurrentUser(): Promise<Parrain | null> {
 
 // ─── Bizuts ───────────────────────────────────────────
 
-export async function getBizuts(): Promise<Bizut[]> {
+export async function getBizuts(parrainId?: string, pinHash?: string): Promise<Bizut[]> {
+  if (parrainId && pinHash) {
+    const { data, error } = await supabase.rpc('get_bizuts_authenticated', {
+      p_parrain_id: parrainId,
+      p_pin_hash: pinHash,
+    })
+    if (!error && data) return data as Bizut[]
+  }
   const { data, error } = await supabase.from('bizuts').select('*').order('nom')
   if (error) throw error
   return data || []
